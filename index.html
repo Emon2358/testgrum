@@ -1,49 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proxy Browser</title>
+  <meta charset="UTF-8">
+  <title>Dynamic HTML Client with Multiple APIs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+  </style>
 </head>
 <body>
-<h1>Proxy Browser</h1>
+  <h1>Dynamic HTML Client with Multiple APIs</h1>
+  <form id="api-form">
+    <label for="api-url-unsplash">Unsplash API URL:</label>
+    <input type="text" id="api-url-unsplash" value="https://api.unsplash.com/search/photos?page=1&query="><br><br>
+    <label for="api-url-github">GitHub API URL:</label>
+    <input type="text" id="api-url-github" value="https://api.github.com/repos/11ty/eleventy"><br><br>
+    <button type="submit">Get Data</button>
+  </form>
+  <div id="dynamic-content"></div>
 
-<!-- URL入力フォーム -->
-<form id="proxyForm">
-    <input type="url" id="urlInput" placeholder="URLを入力してください">
-    <button type="submit">アクセスする</button>
-</form>
+  <script>
+    const form = document.getElementById('api-form');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const apiUrlUnsplash = document.getElementById('api-url-unsplash').value;
+      const apiUrlGitHub = document.getElementById('api-url-github').value;
 
-<!-- ウェブページ表示エリア -->
-<iframe id="webPageFrame" width="100%" height="600"></iframe>
-
-<!-- JavaScript -->
-<script>
-// フォームのサブミット時の処理
-document.getElementById("proxyForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const url = document.getElementById("urlInput").value;
-    if (url) {
-        loadWebPage(url);
-    }
-});
-
-// ウェブページを読み込む関数
-function loadWebPage(url) {
-    // CORSを回避するためのプロキシサーバーのURL
-    const proxyUrl = "https://api.allorigins.win/raw?url=";
-    // プロキシ経由でウェブページを読み込む
-    const apiUrl = proxyUrl + encodeURIComponent(url);
-    fetch(apiUrl)
-        .then(response => response.text())
-        .then(data => {
-            // 取得したHTMLをiframeに表示
-            document.getElementById("webPageFrame").srcdoc = data;
+      fetch(apiUrlUnsplash)
+        .then(response => response.json())
+        .then(dataUnsplash => {
+          fetch(apiUrlGitHub)
+            .then(response => response.json())
+            .then(dataGitHub => {
+              const combinedData = [...dataUnsplash.results, ...dataGitHub];
+              const dynamicContent = `
+                <h2>Dynamic Content</h2>
+                <ul>
+                  ${combinedData.map(item => `<li>${item.title || item.name}</li>`).join('')}
+                </ul>
+              `;
+              document.getElementById('dynamic-content').innerHTML = dynamicContent;
+            })
+            .catch(error => console.error(error));
         })
-        .catch(error => console.error("Error fetching web page:", error));
-}
-</script>
-
+        .catch(error => console.error(error));
+    });
+  </script>
 </body>
 </html>
 
