@@ -1,52 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Dynamic HTML Client with Multiple APIs</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-  </style>
+    <title>Video Embedder</title>
 </head>
 <body>
-  <h1>Dynamic HTML Client with Multiple APIs</h1>
-  <form id="api-form">
-    <label for="api-url-unsplash">Unsplash API URL:</label>
-    <input type="text" id="api-url-unsplash" value="https://api.unsplash.com/search/photos?page=1&query="><br><br>
-    <label for="api-url-github">GitHub API URL:</label>
-    <input type="text" id="api-url-github" value="https://api.github.com/repos/11ty/eleventy"><br><br>
-    <button type="submit">Get Data</button>
-  </form>
-  <div id="dynamic-content"></div>
+    <h1>Video Embedder</h1>
+    <form>
+        <input type="text" id="video-url" value="https://jp.spankbang.com/37a6v/video/porn">
+        <button type="button" id="embed-video">Embed Video</button>
+        <div id="video-container"></div>
+    </form>
 
-  <script>
-    const form = document.getElementById('api-form');
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const apiUrlUnsplash = document.getElementById('api-url-unsplash').value;
-      const apiUrlGitHub = document.getElementById('api-url-github').value;
+    <script>
+        const videoUrlInput = document.getElementById('video-url');
+        const embedVideoButton = document.getElementById('embed-video');
+        const videoContainer = document.getElementById('video-container');
 
-      fetch(apiUrlUnsplash)
-        .then(response => response.json())
-        .then(dataUnsplash => {
-          fetch(apiUrlGitHub)
-            .then(response => response.json())
-            .then(dataGitHub => {
-              const combinedData = [...dataUnsplash.results, ...dataGitHub];
-              const dynamicContent = `
-                <h2>Dynamic Content</h2>
-                <ul>
-                  ${combinedData.map(item => `<li>${item.title || item.name}</li>`).join('')}
-                </ul>
-              `;
-              document.getElementById('dynamic-content').innerHTML = dynamicContent;
-            })
-            .catch(error => console.error(error));
-        })
-        .catch(error => console.error(error));
-    });
-  </script>
+        embedVideoButton.addEventListener('click', async () => {
+            const videoUrl = videoUrlInput.value;
+            try {
+                const response = await fetch(videoUrl);
+                const html = await response.text();
+                const videoRegex = /<source src="([^"]+)"/;
+                const videoSrc = html.match(videoRegex)[1];
+
+                const videoElement = document.createElement('video');
+                videoElement.src = videoSrc;
+                videoElement.controls = true;
+                videoElement.width = 640;
+                videoElement.height = 480;
+
+                videoContainer.innerHTML = '';
+                videoContainer.appendChild(videoElement);
+            } catch (error) {
+                console.error(error);
+            }
+        });
+    </script>
 </body>
 </html>
 
