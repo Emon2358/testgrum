@@ -16,13 +16,11 @@
 
     searchButton.addEventListener('click', () => {
       const searchQuery = searchInput.value;
-      fetch(`https://search.brave.com/api/v1/search?q=${searchQuery}`)
+      fetch(`https://cors-anywhere.herokuapp.com/https://api.ipify.org?format=json`)
         .then(response => response.json())
         .then(data => {
           const resultsHtml = `
-            <ul>
-              ${data.results.map(result => `<li><a href="${result.link}">${result.title}</a></li>`).join('')}
-            </ul>
+            <p>IP Address: ${data.ip}</p>
           `;
           resultsDiv.innerHTML = resultsHtml;
         })
