@@ -16,14 +16,13 @@
 
     searchButton.addEventListener('click', () => {
       const searchQuery = searchInput.value;
-      fetch(`https://ip-api.com/json/${searchQuery}`)
+      fetch(`https://search.brave.com/api/v1/search?q=${searchQuery}`)
         .then(response => response.json())
         .then(data => {
           const resultsHtml = `
-            <p>IP Address: ${data.query}</p>
-            <p>Country: ${data.country}</p>
-            <p>Region: ${data.region}</p>
-            <p>City: ${data.city}</p>
+            <ul>
+              ${data.results.map(result => `<li><a href="${result.link}">${result.title}</a></li>`).join('')}
+            </ul>
           `;
           resultsDiv.innerHTML = resultsHtml;
         })
