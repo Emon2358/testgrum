@@ -1,66 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>URL Extractor</title>
+  <title>VPN Search</title>
 </head>
 <body>
-    <h1>URL Extractor</h1>
-    <form>
-        <input type="text" id="website-url" value="https://jp.spankbang.com/37a6v/video/porn">
-        <button type="button" id="extract-urls">Extract URLs</button>
-        <div id="url-list"></div>
-    </form>
+  <h1>VPN Search</h1>
+  <input id="search-input" type="text" placeholder="Search...">
+  <button id="search-button">Search</button>
+  <div id="results"></div>
 
-    <script>
-        const websiteUrlInput = document.getElementById('website-url');
-        const extractUrlsButton = document.getElementById('extract-urls');
-        const urlListContainer = document.getElementById('url-list');
+  <script>
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const resultsDiv = document.getElementById('results');
 
-        extractUrlsButton.addEventListener('click', async () => {
-            const websiteUrl = websiteUrlInput.value;
-            try {
-                const response = await fetch(websiteUrl);
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-
-                const urls = [];
-                const links = doc.querySelectorAll('a[href]');
-                links.forEach(link => {
-                    const href = link.getAttribute('href');
-                    if (href.startsWith('/')) {
-                        urls.push(websiteUrl + href);
-                    } else {
-                        urls.push(href);
-                    }
-                });
-
-                // Extract dynamic URLs using JavaScript execution
-                const scriptTags = doc.querySelectorAll('script[src]');
-                scriptTags.forEach(scriptTag => {
-                    const scriptSrc = scriptTag.getAttribute('src');
-                    if (scriptSrc.startsWith('/')) {
-                        scriptSrc = websiteUrl + scriptSrc;
-                    }
-                    const scriptResponse = await fetch(scriptSrc);
-                    const scriptText = await scriptResponse.text();
-                    const dynamicUrlsRegex = /\b(https?:\/\/[^\s]+)/g;
-                    const dynamicUrls = scriptText.match(dynamicUrlsRegex);
-                    if (dynamicUrls) {
-                        urls.push(...dynamicUrls);
-                    }
-                });
-
-                urlListContainer.innerHTML = '';
-                urls.forEach(url => {
-                    const urlElement = document.createElement('li');
-                    urlElement.textContent = url;
-                    urlListContainer.appendChild(urlElement);
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        });
-    </script>
+    searchButton.addEventListener('click', () => {
+      const searchQuery = searchInput.value;
+      fetch(`https://ip-api.com/json/${searchQuery}`)
+        .then(response => response.json())
+        .then(data => {
+          const resultsHtml = `
+            <p>IP Address: ${data.query}</p>
+            <p>Country: ${data.country}</p>
+            <p>Region: ${data.region}</p>
+            <p>City: ${data.city}</p>
+          `;
+          resultsDiv.innerHTML = resultsHtml;
+        })
+        .catch(error => console.error(error));
+    });
+  </script>
 </body>
 </html>
