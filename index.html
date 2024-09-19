@@ -163,6 +163,46 @@
             `;
             iframeDoc.head.appendChild(scriptTag);
         }
+
+        // Function to handle Godfield website's specific functionality
+        function handleGodfieldWebsite() {
+            // Get the iframe's content document
+            const iframeDoc = document.getElementById("webPageFrame").contentDocument;
+            // Add a script tag to the iframe's head
+            const scriptTag = iframeDoc.createElement("script");
+            scriptTag.text = `
+                // Handle Godfield website's specific functionality
+                function handleGodfieldWebsite() {
+                    // Get the website's main container element
+                    const mainContainer = document.getElementById("main-container");
+                    // Add an event listener to the main container element
+                    mainContainer.addEventListener("click", function(event) {
+                        // Handle clicks on the main container element
+                        handleMainContainerClick(event);
+                    });
+                }
+
+                // Function to handle main container clicks
+                function handleMainContainerClick(event) {
+                    // Get the clicked element
+                    const element = event.target;
+                    // Check if the element is a link
+                    if (element.tagName === "A") {
+                        // Prevent default link behavior
+                        event.preventDefault();
+                        // Load the linked URL
+                        loadWebPage(element.href);
+                    }
+                }
+
+                // Call the handleGodfieldWebsite function
+                handleGodfieldWebsite();
+            `;
+            iframeDoc.head.appendChild(scriptTag);
+        }
+
+        // Call the handleGodfieldWebsite function
+        handleGodfieldWebsite();
     </script>
-</body>
+</body >
 </html>
