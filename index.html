@@ -1,31 +1,168 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>VPN Search</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy Browser</title>
+    <style>
+        /* Add some basic styling to make the UI more user-friendly */
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #proxyForm {
+            margin: 20px;
+        }
+        #urlInput {
+            width: 50%;
+            padding: 10px;
+            font-size: 18px;
+        }
+        button[type="submit"] {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #webPageFrame {
+            border: none;
+            width: 100%;
+            height: 600px;
+        }
+    </style>
 </head>
 <body>
-  <h1>VPN Search</h1>
-  <input id="search-input" type="text" placeholder="Search...">
-  <button id="search-button">Search</button>
-  <div id="results"></div>
+    <h1>Proxy Browser</h1>
 
-  <script>
-    const searchInput = document.getElementById('search-input');
-    const searchButton = document.getElementById('search-button');
-    const resultsDiv = document.getElementById('results');
+    <!-- URL input form -->
+    <form id="proxyForm">
+        <input type="url" id="urlInput" placeholder="Enter URL">
+        <button type="submit">Access</button>
+    </form>
 
-    searchButton.addEventListener('click', () => {
-      const searchQuery = searchInput.value;
-      fetch(`https://cors-anywhere.herokuapp.com/https://api.ipify.org?format=json`)
-        .then(response => response.json())
-        .then(data => {
-          const resultsHtml = `
-            <p>IP Address: ${data.ip}</p>
-          `;
-          resultsDiv.innerHTML = resultsHtml;
-        })
-        .catch(error => console.error(error));
-    });
-  </script>
+    <!-- Web page display area -->
+    <iframe id="webPageFrame" width="100%" height="600"></iframe>
+
+    <!-- JavaScript -->
+    <script>
+        // Form submission handler
+        document.getElementById("proxyForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const url = document.getElementById("urlInput").value;
+            if (url) {
+                loadWebPage(url);
+            }
+        });
+
+        // Function to load a web page
+        function loadWebPage(url) {
+            // API URL for the proxy server
+            const proxyUrl = "https://api.allorigins.win/raw?url=";
+            // Create a unique cache-busting parameter to avoid caching issues
+            const cacheBust = new Date().getTime();
+            // Construct the API URL with the cache-busting parameter
+            const apiUrl = `${proxyUrl}${encodeURIComponent(url)}&cacheBust=${cacheBust}`;
+            fetch(apiUrl)
+                .then(response => response.text())
+                .then(data => {
+                    // Parse the HTML response for redirects
+                    const redirectedUrl = parseRedirect(data);
+                    if (redirectedUrl) {
+                        // Recursively load the redirected URL
+                        loadWebPage(redirectedUrl);
+                    } else {
+                        // Display the final web page in the iframe
+                        document.getElementById("webPageFrame").srcdoc = data;
+                        // Enable dynamic content
+                        enableDynamicContent();
+                    }
+                })
+                .catch(error => console.error("Error fetching web page:", error));
+        }
+
+        // Function to parse redirects
+        function parseRedirect(html) {
+            const match = html.match(/<meta\s+http-equiv=["']refresh["']\s+content=["']\d+;\s*url=([^"']+)["']/i);
+            if (match && match[1]) {
+                return match[1];
+            }
+            return null;
+        }
+
+        // Function to enable dynamic content
+        function enableDynamicContent() {
+            // Get the iframe's content document
+            const iframeDoc = document.getElementById("webPageFrame").contentDocument;
+            // Add a script tag to the iframe's head
+            const scriptTag = iframeDoc.createElement("script");
+            scriptTag.text = `
+                // Enable dynamic content
+                function enableDynamicContent() {
+                    // Add event listeners to all elements
+                    document.addEventListener("click", function(event) {
+                        // Handle clicks on elements
+                        handleElementClick(event);
+                    });
+                    document.addEventListener("change", function(event) {
+                        // Handle changes to form elements
+                        handleFormChange(event);
+                    });
+                }
+
+                // Function to handle element clicks
+                function handleElementClick(event) {
+                    // Get the clicked element
+                    const element = event.target;
+                    // Check if the element is a link
+                    if (element.tagName === "A") {
+                        // Prevent default link behavior
+                        event.preventDefault();
+                        // Load the linked URL
+                        loadWebPage(element.href);
+                    }
+                }
+
+                // Function to handle form changes
+                function handleFormChange(event) {
+                    // Get the changed form element
+                    const element = event.target;
+                    // Check if the element is a form
+                    if (element.tagName === "FORM") {
+                        // Prevent default form submission behavior
+                        event.preventDefault();
+                        // Submit the form
+                        submitForm(element);
+                    }
+                }
+
+                // Function to submit a form
+                function submitForm(form) {
+                    // Get the form data
+                    const formData = new FormData(form);
+                    // Create a new form submission URL
+                    const submissionUrl = form.action;
+                    // Submit the form data
+                    fetch(submissionUrl, {
+                        method: "POST",
+                        body: formData,
+                    })
+                        .then(response => response.text())
+                        .then(data => {
+                            // Handle the form submission response
+                            handleFormSubmission(data);
+                        })
+                        .catch(error => console.error("Error submitting form:", error));
+                }
+
+                // Function to handle form submission
+                function handleFormSubmission(data) {
+                    // Display the form submission response
+                    document.getElementById("webPageFrame").srcdoc = data;
+                }
+
+                // Call the enableDynamicContent function
+                enableDynamicContent();
+            `;
+            iframeDoc.head.appendChild(scriptTag);
+        }
+    </script>
 </body>
 </html>
