@@ -1,54 +1,50 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL取得</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        #result {
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proxy Browser</title>
 </head>
 <body>
-    <h1>URL取得</h1>
-    <form id="urlForm">
-        <label for="url">サイトのURLを入力してください:</label><br>
-        <input type="text" id="url" placeholder="例: https://example.com" required><br>
-        <button type="submit">取得</button>
-    </form>
-    <div id="result"></div>
+<h1>Proxy Browser</h1>
 
-    <script>
-        document.getElementById('urlForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const url = document.getElementById('url').value;
+<!-- URL入力フォーム -->
+<form id="proxyForm">
+    <input type="url" id="urlInput" placeholder="URLを入力してください">
+    <button type="submit">アクセスする</button>
+</form>
 
-            // archive.todayのプロキシを使ってURLを取得
-            const targetUrl = `https://archive.today/?run=1&url=${encodeURIComponent(url)}`;
+<!-- ウェブページ表示エリア -->
+<iframe id="webPageFrame" width="100%" height="600"></iframe>
 
-            try {
-                const response = await fetch(targetUrl, { mode: 'cors' });
-                const text = await response.text();
-                
-                // 取得したHTMLを表示
-                const resultDiv = document.getElementById('result');
-                resultDiv.innerHTML = text;
+<!-- JavaScript -->
+<script>
+// フォームのサブミット時の処理
+document.getElementById("proxyForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const url = document.getElementById("urlInput").value;
+    if (url) {
+        loadWebPage(url);
+    }
+});
 
-            } catch (error) {
-                console.error('Error fetching URL:', error);
-                document.getElementById('result').innerText = 'エラーが発生しました。';
-            }
-        });
-    </script>
+// ウェブページを読み込む関数
+function loadWebPage(url) {
+    // CORSを回避するためのプロキシサーバーのURL
+    const proxyUrl = "https://api.allorigins.win/raw?url=";
+    // プロキシ経由でウェブページを読み込む
+    const apiUrl = proxyUrl + encodeURIComponent(url);
+    fetch(apiUrl)
+        .then(response => response.text())
+        .then(data => {
+            // 取得したHTMLをiframeに表示
+            document.getElementById("webPageFrame").srcdoc = data;
+        })
+        .catch(error => console.error("Error fetching web page:", error));
+}
+</script>
+
 </body>
 </html>
+
 
