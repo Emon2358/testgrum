@@ -1,37 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Video Embedder</title>
+    <title>URL Extractor</title>
 </head>
 <body>
-    <h1>Video Embedder</h1>
+    <h1>URL Extractor</h1>
     <form>
-        <input type="text" id="video-url" value="https://jp.spankbang.com/37a6v/video/porn">
-        <button type="button" id="embed-video">Embed Video</button>
-        <div id="video-container"></div>
+        <input type="text" id="website-url" value="https://jp.spankbang.com/37a6v/video/porn">
+        <button type="button" id="extract-urls">Extract URLs</button>
+        <div id="url-list"></div>
     </form>
 
     <script>
-        const videoUrlInput = document.getElementById('video-url');
-        const embedVideoButton = document.getElementById('embed-video');
-        const videoContainer = document.getElementById('video-container');
+        const websiteUrlInput = document.getElementById('website-url');
+        const extractUrlsButton = document.getElementById('extract-urls');
+        const urlListContainer = document.getElementById('url-list');
 
-        embedVideoButton.addEventListener('click', async () => {
-            const videoUrl = videoUrlInput.value;
+        extractUrlsButton.addEventListener('click', async () => {
+            const websiteUrl = websiteUrlInput.value;
             try {
-                const response = await fetch(videoUrl);
+                const response = await fetch(websiteUrl);
                 const html = await response.text();
-                const videoRegex = /<source src="([^"]+)"/;
-                const videoSrc = html.match(videoRegex)[1];
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
 
-                const videoElement = document.createElement('video');
-                videoElement.src = videoSrc;
-                videoElement.controls = true;
-                videoElement.width = 640;
-                videoElement.height = 480;
+                const urls = [];
+                const links = doc.querySelectorAll('a[href]');
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href.startsWith('/')) {
+                        urls.push(websiteUrl + href);
+                    } else {
+                        urls.push(href);
+                    }
+                });
 
-                videoContainer.innerHTML = '';
-                videoContainer.appendChild(videoElement);
+                // Extract dynamic URLs using JavaScript execution
+                const scriptTags = doc.querySelectorAll('script[src]');
+                scriptTags.forEach(scriptTag => {
+                    const scriptSrc = scriptTag.getAttribute('src');
+                    if (scriptSrc.startsWith('/')) {
+                        scriptSrc = websiteUrl + scriptSrc;
+                    }
+                    const scriptResponse = await fetch(scriptSrc);
+                    const scriptText = await scriptResponse.text();
+                    const dynamicUrlsRegex = /\b(https?:\/\/[^\s]+)/g;
+                    const dynamicUrls = scriptText.match(dynamicUrlsRegex);
+                    if (dynamicUrls) {
+                        urls.push(...dynamicUrls);
+                    }
+                });
+
+                urlListContainer.innerHTML = '';
+                urls.forEach(url => {
+                    const urlElement = document.createElement('li');
+                    urlElement.textContent = url;
+                    urlListContainer.appendChild(urlElement);
+                });
             } catch (error) {
                 console.error(error);
             }
@@ -39,5 +64,3 @@
     </script>
 </body>
 </html>
-
-
