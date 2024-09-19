@@ -3,62 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>内部URL取得</title>
+    <title>URL取得</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        #urlList {
+        #result {
             margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 600px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
-    <h1>内部URL取得</h1>
+    <h1>URL取得</h1>
     <form id="urlForm">
         <label for="url">サイトのURLを入力してください:</label><br>
         <input type="text" id="url" placeholder="例: https://example.com" required><br>
-        <button type="submit">URLを取得</button>
+        <button type="submit">取得</button>
     </form>
-    <div id="urlList"></div>
+    <div id="result"></div>
 
     <script>
         document.getElementById('urlForm').addEventListener('submit', async (event) => {
             event.preventDefault();
             const url = document.getElementById('url').value;
 
-            // プロキシサーバーを使用
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const targetUrl = proxyUrl + url;
+            // archive.todayのプロキシを使ってURLを取得
+            const targetUrl = `https://archive.today/?run=1&url=${encodeURIComponent(url)}`;
 
             try {
-                const response = await fetch(targetUrl);
+                const response = await fetch(targetUrl, { mode: 'cors' });
                 const text = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                const links = new Set();
-
-                doc.querySelectorAll('a').forEach(anchor => {
-                    const href = anchor.href;
-                    if (href && href.startsWith(url)) {
-                        links.add(href);
-                    }
-                });
-
-                const urlListDiv = document.getElementById('urlList');
-                urlListDiv.innerHTML = '';
-                links.forEach(link => {
-                    const p = document.createElement('p');
-                    p.textContent = link;
-                    urlListDiv.appendChild(p);
-                });
+                
+                // 取得したHTMLを表示
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = text;
 
             } catch (error) {
                 console.error('Error fetching URL:', error);
-                document.getElementById('urlList').innerText = 'エラーが発生しました。';
+                document.getElementById('result').innerText = 'エラーが発生しました。';
             }
         });
     </script>
 </body>
 </html>
+
